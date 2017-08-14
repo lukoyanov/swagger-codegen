@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 
+import java.util.concurrent.*;
+import retrofit2.Response;
+
 public interface PetApi {
   /**
    * Add a new pet to the store
@@ -30,7 +33,7 @@ public interface PetApi {
     "Content-Type:application/json"
   })
   @POST("pet")
-  Call<Void> addPet(
+  CompletionStage<Response<Void>> addPet(
     @retrofit2.http.Body Pet body
   );
 
@@ -42,7 +45,7 @@ public interface PetApi {
    * @return Call&lt;Void&gt;
    */
   @DELETE("pet/{petId}")
-  Call<Void> deletePet(
+  CompletionStage<Response<Void>> deletePet(
     @retrofit2.http.Path("petId") Long petId, @retrofit2.http.Header("api_key") String apiKey
   );
 
@@ -53,7 +56,7 @@ public interface PetApi {
    * @return Call&lt;List&lt;Pet&gt;&gt;
    */
   @GET("pet/findByStatus")
-  Call<List<Pet>> findPetsByStatus(
+  CompletionStage<Response<List<Pet>>> findPetsByStatus(
     @retrofit2.http.Query("status") CSVParams status
   );
 
@@ -64,7 +67,7 @@ public interface PetApi {
    * @return Call&lt;List&lt;Pet&gt;&gt;
    */
   @GET("pet/findByTags")
-  Call<List<Pet>> findPetsByTags(
+  CompletionStage<Response<List<Pet>>> findPetsByTags(
     @retrofit2.http.Query("tags") CSVParams tags
   );
 
@@ -75,7 +78,7 @@ public interface PetApi {
    * @return Call&lt;Pet&gt;
    */
   @GET("pet/{petId}")
-  Call<Pet> getPetById(
+  CompletionStage<Response<Pet>> getPetById(
     @retrofit2.http.Path("petId") Long petId
   );
 
@@ -89,7 +92,7 @@ public interface PetApi {
     "Content-Type:application/json"
   })
   @PUT("pet")
-  Call<Void> updatePet(
+  CompletionStage<Response<Void>> updatePet(
     @retrofit2.http.Body Pet body
   );
 
@@ -103,7 +106,7 @@ public interface PetApi {
    */
   @retrofit2.http.FormUrlEncoded
   @POST("pet/{petId}")
-  Call<Void> updatePetWithForm(
+  CompletionStage<Response<Void>> updatePetWithForm(
     @retrofit2.http.Path("petId") Long petId, @retrofit2.http.Field("name") String name, @retrofit2.http.Field("status") String status
   );
 
@@ -117,7 +120,7 @@ public interface PetApi {
    */
   @retrofit2.http.Multipart
   @POST("pet/{petId}/uploadImage")
-  Call<ModelApiResponse> uploadFile(
+  CompletionStage<Response<ModelApiResponse>> uploadFile(
     @retrofit2.http.Path("petId") Long petId, @retrofit2.http.Part("additionalMetadata") String additionalMetadata, @retrofit2.http.Part("file\"; filename=\"file") RequestBody file
   );
 

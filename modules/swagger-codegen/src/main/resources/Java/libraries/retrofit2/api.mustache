@@ -24,6 +24,11 @@ import play.libs.F;
 import retrofit2.Response;
 {{/usePlay24WS}}
 
+{{#usePlay25WS}}
+import java.util.concurrent.*;
+import retrofit2.Response;
+{{/usePlay25WS}}
+
 {{#operations}}
 public interface {{classname}} {
   {{#operation}}
@@ -50,7 +55,7 @@ public interface {{classname}} {
   {{/prioritizedContentTypes}}
   {{/formParams}}  
   @{{httpMethod}}("{{{path}}}")
-  {{^usePlay24WS}}{{^doNotUseRx}}Observable{{/doNotUseRx}}{{#doNotUseRx}}Call{{/doNotUseRx}}{{/usePlay24WS}}{{#usePlay24WS}}F.Promise<Response{{/usePlay24WS}}<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Object{{/returnType}}>{{#usePlay24WS}}>{{/usePlay24WS}} {{operationId}}({{^allParams}});{{/allParams}}
+  {{^usePlay25WS}}{{^usePlay24WS}}{{^doNotUseRx}}Observable{{/doNotUseRx}}{{#doNotUseRx}}Call{{/doNotUseRx}}{{/usePlay24WS}}{{/usePlay25WS}}{{#usePlay24WS}}F.Promise<Response{{/usePlay24WS}}{{#usePlay25WS}}CompletionStage<Response{{/usePlay25WS}}<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Object{{/returnType}}>{{#usePlay24WS}}>{{/usePlay24WS}}{{#usePlay25WS}}>{{/usePlay25WS}} {{operationId}}({{^allParams}});{{/allParams}}
     {{#allParams}}{{>libraries/retrofit2/queryParams}}{{>libraries/retrofit2/pathParams}}{{>libraries/retrofit2/headerParams}}{{>libraries/retrofit2/bodyParams}}{{>libraries/retrofit2/formParams}}{{#hasMore}}, {{/hasMore}}{{^hasMore}}
   );{{/hasMore}}{{/allParams}}
 
