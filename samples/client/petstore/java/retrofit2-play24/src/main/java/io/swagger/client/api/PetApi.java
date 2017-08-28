@@ -21,6 +21,7 @@ import java.util.Map;
 import play.libs.F;
 import retrofit2.Response;
 
+
 public interface PetApi {
   /**
    * Add a new pet to the store
@@ -120,7 +121,7 @@ public interface PetApi {
   @retrofit2.http.Multipart
   @POST("pet/{petId}/uploadImage")
   F.Promise<Response<ModelApiResponse>> uploadFile(
-    @retrofit2.http.Path("petId") Long petId, @retrofit2.http.Part("additionalMetadata") String additionalMetadata, @retrofit2.http.Part("file\"; filename=\"file") RequestBody file
+    @retrofit2.http.Path("petId") Long petId, @retrofit2.http.Part("additionalMetadata") String additionalMetadata, @retrofit2.http.Part okhttp3.MultipartBody.Part file
   );
 
 }
