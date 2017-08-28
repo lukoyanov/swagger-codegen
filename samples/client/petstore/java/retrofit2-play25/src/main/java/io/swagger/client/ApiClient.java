@@ -1,10 +1,14 @@
 package io.swagger.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
+import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -16,6 +20,7 @@ import io.swagger.client.Play25CallAdapterFactory;
 import io.swagger.client.Play25CallFactory;
 
 import okhttp3.Interceptor;
+import okhttp3.ResponseBody;
 import io.swagger.client.auth.ApiKeyAuth;
 import io.swagger.client.auth.Authentication;
 
@@ -69,6 +74,24 @@ public class ApiClient {
 
         return new Retrofit.Builder()
                        .baseUrl(basePath)
+                       .addConverterFactory(new Converter.Factory() {
+
+                           @Override
+                           public Converter<ResponseBody, File> responseBodyConverter(Type type,
+                                                                                      Annotation[] annotations, Retrofit retrofit) {
+
+                               if (!File.class.getTypeName().equals(type.getTypeName())) {
+                                   return null;
+                               }
+
+                               return value -> {
+
+                                   File file = File.createTempFile("retrofit-file", ".tmp");
+                                   Files.write(Paths.get(file.getPath()), value.bytes());
+                                   return file;
+                               };
+                           }
+                       })
                        .addConverterFactory(ScalarsConverterFactory.create())
                        .addConverterFactory(JacksonConverterFactory.create(Json.mapper()))
                        .callFactory(new Play25CallFactory(wsClient, extraHeaders, extraQueryParams))
