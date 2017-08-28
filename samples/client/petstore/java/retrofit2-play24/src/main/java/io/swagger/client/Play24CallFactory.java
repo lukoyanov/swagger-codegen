@@ -168,12 +168,12 @@ public class Play24CallFactory implements okhttp3.Call.Factory {
 
                        @Override
                        public long contentLength() {
-                           return r.getBody().getBytes().length;
+                           return r.asByteArray().length;
                        }
 
                        @Override
                        public BufferedSource source() {
-                           return new Buffer().write(r.getBody().getBytes());
+                           return new Buffer().write(r.asByteArray());
                        }
                    });
 
