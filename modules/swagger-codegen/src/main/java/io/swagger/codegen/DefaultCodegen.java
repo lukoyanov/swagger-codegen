@@ -3170,12 +3170,7 @@ public class DefaultCodegen {
         }
 
         // Remove all underscores
-        p = Pattern.compile("(_)(.)");
-        m = p.matcher(word);
-        while (m.find()) {
-            word = m.replaceFirst(m.group(2).toUpperCase());
-            m = p.matcher(word);
-        }
+        word = word.replaceAll("_", "");
 
         if (lowercaseFirstLetter && word.length() > 0) {
             word = word.substring(0, 1).toLowerCase() + word.substring(1);
