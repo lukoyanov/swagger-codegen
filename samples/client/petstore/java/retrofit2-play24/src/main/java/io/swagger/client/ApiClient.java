@@ -73,31 +73,35 @@ public class ApiClient {
         }
 
         return new Retrofit.Builder()
-                       .baseUrl(basePath)
-                       .addConverterFactory(new Converter.Factory() {
+                        .baseUrl(basePath)
+                        .addConverterFactory(new Converter.Factory() {
 
-                           @Override
-                           public Converter<ResponseBody, File> responseBodyConverter(Type type,
-                                                                                      Annotation[] annotations, Retrofit retrofit) {
+                            @Override
+                            public Converter<ResponseBody, File> responseBodyConverter(Type type,
+                                    Annotation[] annotations, Retrofit retrofit) {
 
-                               if (!File.class.getTypeName().equals(type.getTypeName())) {
-                                   return null;
-                               }
+                                if (!File.class.getTypeName().equals(type.getTypeName())) {
+                                    return null;
+                                }
 
-                               return value -> {
+                                return new Converter<ResponseBody, File>() {
 
-                                   File file = File.createTempFile("retrofit-file", ".tmp");
-                                   Files.write(Paths.get(file.getPath()), value.bytes());
-                                   return file;
-                               };
-                           }
-                       })
-                       .addConverterFactory(ScalarsConverterFactory.create())
-                       .addConverterFactory(JacksonConverterFactory.create(Json.mapper()))
-                       .callFactory(new Play24CallFactory(wsClient, extraHeaders, extraQueryParams))
-                       .addCallAdapterFactory(new Play24CallAdapterFactory())
-                       .build()
-                       .create(serviceClass);
+                                    @Override
+                                    public File convert(ResponseBody value) throws IOException {
+
+                                        File file = File.createTempFile("retrofit-file", ".tmp");
+                                        Files.write(Paths.get(file.getPath()), value.bytes());
+                                        return file;
+                                    }
+                                };
+                            }
+                        })
+                        .addConverterFactory(ScalarsConverterFactory.create())
+                        .addConverterFactory(JacksonConverterFactory.create(Json.mapper()))
+                        .callFactory(new Play24CallFactory(wsClient, extraHeaders, extraQueryParams))
+                        .addCallAdapterFactory(new Play24CallAdapterFactory())
+                        .build()
+                        .create(serviceClass);
     }
 
     /**

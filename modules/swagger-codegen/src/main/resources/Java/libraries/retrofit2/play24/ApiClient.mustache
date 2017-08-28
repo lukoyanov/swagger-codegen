@@ -84,11 +84,15 @@ public class ApiClient {
                                     return null;
                                 }
 
-                                return value -> {
+                                return new Converter<ResponseBody, File>() {
 
-                                    File file = File.createTempFile("retrofit-file", ".tmp");
-                                    Files.write(Paths.get(file.getPath()), value.bytes());
-                                    return file;
+                                    @Override
+                                    public File convert(ResponseBody value) throws IOException {
+
+                                        File file = File.createTempFile("retrofit-file", ".tmp");
+                                        Files.write(Paths.get(file.getPath()), value.bytes());
+                                        return file;
+                                    }
                                 };
                             }
                         })
