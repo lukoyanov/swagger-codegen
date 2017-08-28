@@ -3173,9 +3173,16 @@ public class DefaultCodegen {
         p = Pattern.compile("(_)(.)");
         m = p.matcher(word);
         while (m.find()) {
-            word = m.replaceFirst(m.group(2).toUpperCase());
+            String original = m.group(2);
+            String upperCase = original.toUpperCase();
+            if (original.equals(upperCase)) {
+                word = word.replaceFirst("_", "");
+            } else {
+                word = m.replaceFirst(upperCase);
+            }
             m = p.matcher(word);
         }
+
 
         if (lowercaseFirstLetter && word.length() > 0) {
             word = word.substring(0, 1).toLowerCase() + word.substring(1);
