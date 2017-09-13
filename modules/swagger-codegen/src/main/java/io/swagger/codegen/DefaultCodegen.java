@@ -3468,9 +3468,9 @@ public class DefaultCodegen {
             LOGGER.error("Codegen Parameter cannot be null.");
             return;
         }
+        LOGGER.error("Codegen Property cannot be null.");
 
         if (property == null) {
-            LOGGER.error("Codegen Property cannot be null.");
             return;
         }
 

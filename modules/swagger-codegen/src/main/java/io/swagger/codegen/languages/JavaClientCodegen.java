@@ -4,6 +4,7 @@ import io.swagger.codegen.*;
 import io.swagger.codegen.languages.features.BeanValidationFeatures;
 import io.swagger.codegen.languages.features.GzipFeatures;
 import io.swagger.codegen.languages.features.PerformBeanValidationFeatures;
+import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,10 +30,12 @@ public class JavaClientCodegen extends AbstractJavaCodegen
     public static final String USE_PLAY25_WS = "usePlay25WS";
     public static final String PARCELABLE_MODEL = "parcelableModel";
     public static final String USE_RUNTIME_EXCEPTION = "useRuntimeException";
+    public static final String QUERYMAP_MINCOUNT = "queryMapMinCount";
+    public static final String QUERYMAP_EXTENSION = "x-retrofit2-querymap";
 
     public static final String RETROFIT_1 = "retrofit";
     public static final String RETROFIT_2 = "retrofit2";
-
+    
     protected String gradleWrapperPackage = "gradle.wrapper";
     protected boolean useRxJava = false;
     protected boolean useRxJava2 = false;
@@ -44,6 +47,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
     protected boolean performBeanValidation = false;
     protected boolean useGzipFeature = false;
     protected boolean useRuntimeException = false;
+    protected int queryMapMinCount = 1;
 
     public JavaClientCodegen() {
         super();
@@ -64,6 +68,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
         cliOptions.add(CliOption.newBoolean(PERFORM_BEANVALIDATION, "Perform BeanValidation"));
         cliOptions.add(CliOption.newBoolean(USE_GZIP_FEATURE, "Send gzip-encoded requests"));
         cliOptions.add(CliOption.newBoolean(USE_RUNTIME_EXCEPTION, "Use RuntimeException instead of Exception"));
+        cliOptions.add(CliOption.newString(QUERYMAP_MINCOUNT, "Minimum query param count when @QueryMap is used"));
 
         supportedLibraries.put("jersey1", "HTTP client: Jersey client 1.19.1. JSON processing: Jackson 2.7.0. Enable Java6 support using '-DsupportJava6=true'. Enable gzip request encoding using '-DuseGzipFeature=true'.");
         supportedLibraries.put("feign", "HTTP client: OpenFeign 9.4.0. JSON processing: Jackson 2.8.7");
@@ -122,7 +127,12 @@ public class JavaClientCodegen extends AbstractJavaCodegen
             this.setUsePlay25WS(Boolean.valueOf(additionalProperties.get(USE_PLAY25_WS).toString()));
         }
         additionalProperties.put(USE_PLAY25_WS, usePlay25WS);
-
+        
+        if (additionalProperties.containsKey(QUERYMAP_MINCOUNT)) {
+            this.queryMapMinCount = Integer.valueOf(additionalProperties.get(QUERYMAP_MINCOUNT).toString());
+        }
+        additionalProperties.put(QUERYMAP_MINCOUNT, queryMapMinCount);
+        
         if (additionalProperties.containsKey(PARCELABLE_MODEL)) {
             this.setParcelableModel(Boolean.valueOf(additionalProperties.get(PARCELABLE_MODEL).toString()));
         }
@@ -274,6 +284,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
             Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
             if (operations != null) {
                 List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
+                List<ExtendedCodegenOperation> newOperations = new ArrayList<ExtendedCodegenOperation>();
                 for (CodegenOperation operation : ops) {
                     if (operation.hasConsumes == Boolean.TRUE) {
 
@@ -289,7 +300,42 @@ public class JavaClientCodegen extends AbstractJavaCodegen
                     }
                     if (usesRetrofit2Library() && StringUtils.isNotEmpty(operation.path) && operation.path.startsWith("/"))
                         operation.path = operation.path.substring(1);
+                    
+                    ExtendedCodegenOperation newOperation = new ExtendedCodegenOperation(operation);
+                    if (operation.vendorExtensions.containsKey(QUERYMAP_EXTENSION)) {
+                        newOperation.setUseQueryMap(true);
+                    }
+                    if (this.queryMapMinCount != -1 && operation.queryParams.size() > this.queryMapMinCount) {
+                        newOperation.setUseQueryMap(true);
+                    }
+                    
+                    if (newOperation.isUseQueryMap()) {
+                        boolean foundItem = false;
+                        ListIterator<CodegenParameter> iter =
+                                newOperation.allParams.listIterator(newOperation.allParams.size());
+                        
+                        while (iter.hasPrevious()) {
+                            CodegenParameter p = iter.previous();
+                            if (p.isQueryParam) {
+                                p.hasMore = false;
+                                continue;
+                            }
+                            if (!foundItem) {
+                                foundItem = true;
+                                p.hasMore = false;
+                            } else {
+                                p.hasMore = true;
+                            }
+                        }
+                        if (!foundItem) {
+                            newOperation.setQueryParamsOnly(true);
+                        }
+                    }
+                    
+                    newOperations.add(newOperation);
                 }
+
+                operations.put("operation", newOperations);
             }
         }
 
@@ -479,4 +525,85 @@ public class JavaClientCodegen extends AbstractJavaCodegen
         return mime != null && JSON_VENDOR_MIME_PATTERN.matcher(mime).matches();
     }
 
+    static class ExtendedCodegenOperation extends CodegenOperation {
+        private boolean queryParamsOnly = false;
+        private boolean useQueryMap = false;
+
+        public ExtendedCodegenOperation(CodegenOperation o) {
+            super();
+
+            // Copy all fields of CodegenOperation
+            this.responseHeaders.addAll(o.responseHeaders);
+            this.hasAuthMethods = o.hasAuthMethods;
+            this.hasConsumes = o.hasConsumes;
+            this.hasProduces = o.hasProduces;
+            this.hasParams = o.hasParams;
+            this.hasOptionalParams = o.hasOptionalParams;
+            this.returnTypeIsPrimitive = o.returnTypeIsPrimitive;
+            this.returnSimpleType = o.returnSimpleType;
+            this.subresourceOperation = o.subresourceOperation;
+            this.isMapContainer = o.isMapContainer;
+            this.isListContainer = o.isListContainer;
+            this.isMultipart = o.isMultipart;
+            this.hasMore = o.hasMore;
+            this.isResponseBinary = o.isResponseBinary;
+            this.hasReference = o.hasReference;
+            this.isRestfulIndex = o.isRestfulIndex;
+            this.isRestfulShow = o.isRestfulShow;
+            this.isRestfulCreate = o.isRestfulCreate;
+            this.isRestfulUpdate = o.isRestfulUpdate;
+            this.isRestfulDestroy = o.isRestfulDestroy;
+            this.isRestful = o.isRestful;
+            this.path = o.path;
+            this.operationId = o.operationId;
+            this.returnType = o.returnType;
+            this.httpMethod = o.httpMethod;
+            this.returnBaseType = o.returnBaseType;
+            this.returnContainer = o.returnContainer;
+            this.summary = o.summary;
+            this.unescapedNotes = o.unescapedNotes;
+            this.notes = o.notes;
+            this.baseName = o.baseName;
+            this.defaultResponse = o.defaultResponse;
+            this.discriminator = o.discriminator;
+            this.consumes = o.consumes;
+            this.produces = o.produces;
+            this.bodyParam = o.bodyParam;
+            this.allParams = o.allParams;
+            this.bodyParams = o.bodyParams;
+            this.pathParams = o.pathParams;
+            this.queryParams = o.queryParams;
+            this.headerParams = o.headerParams;
+            this.formParams = o.formParams;
+            this.authMethods = o.authMethods;
+            this.tags = o.tags;
+            this.responses = o.responses;
+            this.imports = o.imports;
+            this.examples = o.examples;
+            this.externalDocs = o.externalDocs;
+            this.vendorExtensions = o.vendorExtensions;
+            this.nickname = o.nickname;
+            this.operationIdLowerCase = o.operationIdLowerCase;
+            this.operationIdCamelCase = o.operationIdCamelCase;
+        }
+
+        public boolean isQueryParamsOnly() {
+            return queryParamsOnly;
+        }
+
+        public ExtendedCodegenOperation setQueryParamsOnly(boolean queryParamsOnly) {
+            this.queryParamsOnly = queryParamsOnly;
+            return this;
+        }
+
+        public boolean isUseQueryMap() {
+            return useQueryMap;
+        }
+
+        public ExtendedCodegenOperation setUseQueryMap(boolean useQueryMap) {
+            this.useQueryMap = useQueryMap;
+            return this;
+        }
+    }
+    
 }
