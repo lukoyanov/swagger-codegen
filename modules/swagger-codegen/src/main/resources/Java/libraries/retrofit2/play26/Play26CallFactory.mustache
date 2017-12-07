@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
 /**
  * Creates {@link Call} instances that invoke underlying {@link WSClient}
  */
-public class Play25CallFactory implements okhttp3.Call.Factory {
+public class Play26CallFactory implements okhttp3.Call.Factory {
 
     /** PlayWS http client */
     private final WSClient wsClient;
@@ -35,22 +35,30 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
     
     /** Filters (interceptors) */
     private List<WSRequestFilter> filters = new ArrayList<>();
+    
+    /** Executor for WSClient */
+    private Executor executor;
 
-    public Play25CallFactory(WSClient wsClient) {
+    public Play26CallFactory(WSClient wsClient) {
         this.wsClient = wsClient;
     }
 
-    public Play25CallFactory(WSClient wsClient, List<WSRequestFilter> filters) {
+    public Play26CallFactory(WSClient wsClient, List<WSRequestFilter> filters) {
         this.wsClient = wsClient;
         this.filters.addAll(filters);
     }
 
-    public Play25CallFactory(WSClient wsClient, Map<String, String> extraHeaders,
+    public Play26CallFactory(WSClient wsClient, Map<String, String> extraHeaders,
         List<Pair> extraQueryParams) {
         this.wsClient = wsClient;
 
         this.extraHeaders.putAll(extraHeaders);
         this.extraQueryParams.addAll(extraQueryParams);
+    }
+     
+    public Play26CallFactory withExecutor(Executor executor) {
+        this.executor = executor;
+        return this;
     }
 
     @Override
@@ -83,7 +91,7 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
             }
         }
 
-        return new PlayWSCall(wsClient, this.filters, rb.build());
+        return new PlayWSCall(wsClient, this.executor, this.filters, rb.build());
     }
 
     /**
@@ -94,13 +102,18 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
         private final WSClient wsClient;
         private WSRequest wsRequest;
         private List<WSRequestFilter> filters;
+        private Executor executor = java.util.concurrent.ForkJoinPool.commonPool();
 
         private final Request request;
 
-        public PlayWSCall(WSClient wsClient, List<WSRequestFilter> filters, Request request) {
+        public PlayWSCall(WSClient wsClient, Executor executor, List<WSRequestFilter> filters, Request request) {
             this.wsClient = wsClient;
             this.request = request;
             this.filters = filters;
+            
+            if (executor != null) {
+                this.executor = executor;
+            }
         }
 
         @Override
@@ -127,7 +140,7 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
                         throw new RuntimeException(e);
                     }
                 }
-            }, play.libs.concurrent.HttpExecution.defaultContext());
+            }, this.executor);
         }
 
         CompletionStage<WSResponse> executeAsync() {
@@ -135,13 +148,13 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
                 HttpUrl url = request.url();
                 wsRequest = wsClient.url(url.scheme()+ "://" + url.host() + ":" + url.port() + url.encodedPath());
                 url.queryParameterNames().forEach(queryParam -> {
-                    wsRequest.setQueryParameter(queryParam, url.queryParameter(queryParam));
+                    wsRequest.addQueryParameter(queryParam, url.queryParameter(queryParam));
                 });
                 addHeaders(wsRequest);
                 if (request.body() != null) {
                     addBody(wsRequest);
                 }
-                filters.stream().forEach(f -> wsRequest.withRequestFilter(f));
+                filters.stream().forEach(f -> wsRequest.setRequestFilter(f));
 
                 return wsRequest.execute(request.method());
             } catch (Exception e) {
@@ -159,14 +172,14 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
         }
 
         private void addBody(WSRequest wsRequest) throws IOException {
-            Buffer buffer = new Buffer();
-            request.body().writeTo(buffer);
-            wsRequest.setBody(buffer.inputStream());
-            
             MediaType mediaType = request.body().contentType();
             if (mediaType != null) {
                 wsRequest.setContentType(mediaType.toString());
             }
+
+            Buffer buffer = new Buffer();
+            request.body().writeTo(buffer);
+            wsRequest.setBody(buffer.inputStream());            
         }
 
         private Response toWSResponse(final WSResponse r) {
@@ -177,7 +190,9 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
 
                        @Override
                        public MediaType contentType() {
-                           return MediaType.parse(r.getHeader("Content-Type"));
+                          return r.getSingleHeader("Content-Type")
+                                  .map(MediaType::parse)
+                                  .orElse(null);
                        }
 
                        @Override

@@ -29,6 +29,11 @@ import java.util.concurrent.*;
 import retrofit2.Response;
 {{/usePlay25WS}}
 
+{{#usePlay26WS}}
+import java.util.concurrent.*;
+import retrofit2.Response;
+{{/usePlay26WS}}
+
 {{#operations}}
 public interface {{classname}} {
   {{#operation}}
@@ -55,7 +60,7 @@ public interface {{classname}} {
   {{/prioritizedContentTypes}}
   {{/formParams}}  
   @{{httpMethod}}("{{{path}}}")
-  {{^usePlay25WS}}{{^usePlay24WS}}{{^doNotUseRx}}Observable{{/doNotUseRx}}{{#doNotUseRx}}Call{{/doNotUseRx}}{{/usePlay24WS}}{{/usePlay25WS}}{{#usePlay24WS}}F.Promise<Response{{/usePlay24WS}}{{#usePlay25WS}}CompletionStage<Response{{/usePlay25WS}}<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Object{{/returnType}}>{{#usePlay24WS}}>{{/usePlay24WS}}{{#usePlay25WS}}>{{/usePlay25WS}} {{operationId}}({{^allParams}});{{/allParams}}
+  {{^usePlay26WS}}{{^usePlay25WS}}{{^usePlay24WS}}{{^doNotUseRx}}Observable{{/doNotUseRx}}{{#doNotUseRx}}Call{{/doNotUseRx}}{{/usePlay24WS}}{{/usePlay25WS}}{{/usePlay26WS}}{{#usePlay24WS}}F.Promise<Response{{/usePlay24WS}}{{#usePlay25WS}}CompletionStage<Response{{/usePlay25WS}}{{#usePlay26WS}}CompletionStage<Response{{/usePlay26WS}}<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Object{{/returnType}}>{{#usePlay24WS}}>{{/usePlay24WS}}{{#usePlay25WS}}>{{/usePlay25WS}}{{#usePlay26WS}}>{{/usePlay26WS}} {{operationId}}({{^allParams}});{{/allParams}}
   {{#useQueryMap}}
             @QueryMap(encoded=true) Map<String, String> queryParams{{^queryParamsOnly}}, {{/queryParamsOnly}}{{#allParams}}{{>libraries/retrofit2/pathParams}}{{>libraries/retrofit2/headerParams}}{{>libraries/retrofit2/bodyParams}}{{>libraries/retrofit2/formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}
   );
