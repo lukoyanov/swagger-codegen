@@ -212,6 +212,7 @@ public class Play26CallFactory implements okhttp3.Call.Factory {
                 }
             }
 
+            builder.message(r.getStatusText());
             builder.protocol(Protocol.HTTP_1_1);
             return builder.build();
         }
