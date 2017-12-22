@@ -32,6 +32,12 @@ public class ApiClient {
     /** Underlying HTTP-client */
     private WSClient wsClient;
 
+    /** Creates HTTP call instances */
+    private Play26CallFactory callFactory;
+
+    /** Create {@link java.util.concurrent.CompletionStage} instances from HTTP calls */
+    private Play26CallAdapterFactory callAdapterFactory;
+
     /** Supported auths */
     private Map<String, Authentication> authentications;
 
@@ -72,6 +78,13 @@ public class ApiClient {
             auth.applyToParams(extraQueryParams, extraHeaders);
         }
 
+        if (callFactory == null) {
+            callFactory = new Play26CallFactory(wsClient, extraHeaders, extraQueryParams);
+        }
+        if (callAdapterFactory == null) {
+            callAdapterFactory = new Play26CallAdapterFactory();
+        }
+
         return new Retrofit.Builder()
                         .baseUrl(basePath)
                         .addConverterFactory(new Converter.Factory() {
@@ -98,8 +111,8 @@ public class ApiClient {
                         })
                        .addConverterFactory(ScalarsConverterFactory.create())
                        .addConverterFactory(JacksonConverterFactory.create(Json.mapper()))
-                       .callFactory(new Play26CallFactory(wsClient, extraHeaders, extraQueryParams))
-                       .addCallAdapterFactory(new Play26CallAdapterFactory())
+                       .callFactory(callFactory)
+                       .addCallAdapterFactory(callAdapterFactory)
                        .build()
                        .create(serviceClass);
     }
@@ -157,6 +170,21 @@ public class ApiClient {
         throw new RuntimeException("No API key authentication configured!");
     }
 
+    /**
+     * Helper method to set HTTP call instances factory
+     */
+    public ApiClient setCallFactory(Play26CallFactory callFactory) {
+        this.callFactory = callFactory;
+        return this;
+    }
+
+    /**
+     * Helper method to set {@link java.util.concurrent.CompletionStage} instances factory
+     */
+    public ApiClient setCallAdapterFactory(Play26CallAdapterFactory callAdapterFactory) {
+        this.callAdapterFactory = callAdapterFactory;
+        return this;
+    }
 
 }
 
