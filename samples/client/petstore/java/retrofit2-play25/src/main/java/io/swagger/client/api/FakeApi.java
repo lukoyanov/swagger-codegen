@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.*;
 import retrofit2.Response;
 
+
 public interface FakeApi {
   /**
    * 
@@ -33,7 +34,7 @@ public interface FakeApi {
    */
   @POST("fake/outer/boolean")
   CompletionStage<Response<Boolean>> fakeOuterBooleanSerialize(
-    @retrofit2.http.Body Boolean body
+      @retrofit2.http.Body Boolean body
   );
 
   /**
@@ -44,7 +45,7 @@ public interface FakeApi {
    */
   @POST("fake/outer/composite")
   CompletionStage<Response<OuterComposite>> fakeOuterCompositeSerialize(
-    @retrofit2.http.Body OuterComposite body
+      @retrofit2.http.Body OuterComposite body
   );
 
   /**
@@ -55,7 +56,7 @@ public interface FakeApi {
    */
   @POST("fake/outer/number")
   CompletionStage<Response<BigDecimal>> fakeOuterNumberSerialize(
-    @retrofit2.http.Body BigDecimal body
+      @retrofit2.http.Body BigDecimal body
   );
 
   /**
@@ -66,7 +67,7 @@ public interface FakeApi {
    */
   @POST("fake/outer/string")
   CompletionStage<Response<String>> fakeOuterStringSerialize(
-    @retrofit2.http.Body String body
+      @retrofit2.http.Body String body
   );
 
   /**
@@ -75,12 +76,9 @@ public interface FakeApi {
    * @param body client model (required)
    * @return Call&lt;Client&gt;
    */
-  @Headers({
-    "Content-Type:application/json"
-  })
   @PATCH("fake")
   CompletionStage<Response<Client>> testClientModel(
-    @retrofit2.http.Body Client body
+      @retrofit2.http.Body Client body
   );
 
   /**
@@ -105,26 +103,30 @@ public interface FakeApi {
   @retrofit2.http.FormUrlEncoded
   @POST("fake")
   CompletionStage<Response<Void>> testEndpointParameters(
-    @retrofit2.http.Field("number") BigDecimal number, @retrofit2.http.Field("double") Double _double, @retrofit2.http.Field("pattern_without_delimiter") String patternWithoutDelimiter, @retrofit2.http.Field("byte") byte[] _byte, @retrofit2.http.Field("integer") Integer integer, @retrofit2.http.Field("int32") Integer int32, @retrofit2.http.Field("int64") Long int64, @retrofit2.http.Field("float") Float _float, @retrofit2.http.Field("string") String string, @retrofit2.http.Field("binary") byte[] binary, @retrofit2.http.Field("date") LocalDate date, @retrofit2.http.Field("dateTime") DateTime dateTime, @retrofit2.http.Field("password") String password, @retrofit2.http.Field("callback") String paramCallback
+      @retrofit2.http.Field("number") BigDecimal number, @retrofit2.http.Field("double") Double _double, @retrofit2.http.Field("pattern_without_delimiter") String patternWithoutDelimiter, @retrofit2.http.Field("byte") byte[] _byte, @retrofit2.http.Field("integer") Integer integer, @retrofit2.http.Field("int32") Integer int32, @retrofit2.http.Field("int64") Long int64, @retrofit2.http.Field("float") Float _float, @retrofit2.http.Field("string") String string, @retrofit2.http.Field("binary") byte[] binary, @retrofit2.http.Field("date") LocalDate date, @retrofit2.http.Field("dateTime") DateTime dateTime, @retrofit2.http.Field("password") String password, @retrofit2.http.Field("callback") String paramCallback
   );
 
   /**
    * To test enum parameters
    * To test enum parameters
+   * @param queryParams Map of query parameters as name-value pairs
+   *   <p>The following elements may be specified in the query map:</p>
+   *   <ul>
+   *       <li>enumQueryStringArray - Query parameter enum test (string array) (optional)</li>
+   *       <li>enumQueryString - Query parameter enum test (string) (optional, default to -efg)</li>
+   *       <li>enumQueryInteger - Query parameter enum test (double) (optional)</li>
+   *   </ul>
    * @param enumFormStringArray Form parameter enum test (string array) (optional)
    * @param enumFormString Form parameter enum test (string) (optional, default to -efg)
    * @param enumHeaderStringArray Header parameter enum test (string array) (optional)
    * @param enumHeaderString Header parameter enum test (string) (optional, default to -efg)
-   * @param enumQueryStringArray Query parameter enum test (string array) (optional)
-   * @param enumQueryString Query parameter enum test (string) (optional, default to -efg)
-   * @param enumQueryInteger Query parameter enum test (double) (optional)
    * @param enumQueryDouble Query parameter enum test (double) (optional)
    * @return Call&lt;Void&gt;
    */
   @retrofit2.http.FormUrlEncoded
   @GET("fake")
   CompletionStage<Response<Void>> testEnumParameters(
-    @retrofit2.http.Field("enum_form_string_array") List<String> enumFormStringArray, @retrofit2.http.Field("enum_form_string") String enumFormString, @retrofit2.http.Header("enum_header_string_array") List<String> enumHeaderStringArray, @retrofit2.http.Header("enum_header_string") String enumHeaderString, @retrofit2.http.Query("enum_query_string_array") CSVParams enumQueryStringArray, @retrofit2.http.Query("enum_query_string") String enumQueryString, @retrofit2.http.Query("enum_query_integer") Integer enumQueryInteger, @retrofit2.http.Field("enum_query_double") Double enumQueryDouble
+            @QueryMap(encoded=true) Map<String, String> queryParams, @retrofit2.http.Field("enum_form_string_array") List<String> enumFormStringArray, @retrofit2.http.Field("enum_form_string") String enumFormString, @retrofit2.http.Header("enum_header_string_array") List<String> enumHeaderStringArray, @retrofit2.http.Header("enum_header_string") String enumHeaderString, @retrofit2.http.Field("enum_query_double") Double enumQueryDouble
   );
 
 }

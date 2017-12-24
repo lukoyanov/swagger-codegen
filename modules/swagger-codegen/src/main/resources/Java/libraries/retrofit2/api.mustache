@@ -40,9 +40,25 @@ public interface {{classname}} {
   /**
    * {{summary}}
    * {{notes}}
-{{#allParams}}
+  {{#useQueryMap}}
+   * @param queryParams Map of query parameters as name-value pairs
+   *   <p>The following elements may be specified in the query map:</p>
+   *   <ul>
+          {{#queryParams}}
+   *       <li>{{paramName}} - {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}</li>
+          {{/queryParams}}
+   *   </ul>
+  {{/useQueryMap}}
+  {{#allParams}}
+    {{^isQueryParam}}
    * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
-{{/allParams}}
+    {{/isQueryParam}}
+    {{^useQueryMap}}
+        {{#isQueryParam}}
+   * @param {{paramName}} {{description}}{{#required}} (required){{/required}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+        {{/isQueryParam}}
+    {{/useQueryMap}}
+  {{/allParams}}
    * @return Call&lt;{{#returnType}}{{returnType}}{{/returnType}}{{^returnType}}Object{{/returnType}}&gt;
    */
   {{#formParams}}

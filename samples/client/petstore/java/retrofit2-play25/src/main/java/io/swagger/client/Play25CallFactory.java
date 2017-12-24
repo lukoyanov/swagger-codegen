@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
 
 /**
  * Creates {@link Call} instances that invoke underlying {@link WSClient}
@@ -122,8 +123,8 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
                 } else {
                     try {
                         responseCallback.onResponse(call, PlayWSCall.this.toWSResponse(v));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        responseCallback.onFailure(call, new IOException(e));
                     }
                 }
             }, play.libs.concurrent.HttpExecution.defaultContext());
@@ -131,7 +132,11 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
 
         CompletionStage<WSResponse> executeAsync() {
             try {
-                wsRequest = wsClient.url(request.url().uri().toString());
+                HttpUrl url = request.url();
+                wsRequest = wsClient.url(url.scheme()+ "://" + url.host() + ":" + url.port() + url.encodedPath());
+                url.queryParameterNames().forEach(queryParam -> {
+                    wsRequest.setQueryParameter(queryParam, url.queryParameter(queryParam));
+                });
                 addHeaders(wsRequest);
                 if (request.body() != null) {
                     addBody(wsRequest);
@@ -192,6 +197,7 @@ public class Play25CallFactory implements okhttp3.Call.Factory {
                 }
             }
 
+            builder.message(r.getStatusText());
             builder.protocol(Protocol.HTTP_1_1);
             return builder.build();
         }
