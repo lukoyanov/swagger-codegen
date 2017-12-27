@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.*;
 import retrofit2.Response;
 
+
 public interface StoreApi {
   /**
    * Delete purchase order by ID
@@ -29,7 +30,7 @@ public interface StoreApi {
    */
   @DELETE("store/order/{order_id}")
   CompletionStage<Response<Void>> deleteOrder(
-    @retrofit2.http.Path("order_id") String orderId
+      @retrofit2.http.Path("order_id") String orderId
   );
 
   /**
@@ -39,7 +40,7 @@ public interface StoreApi {
    */
   @GET("store/inventory")
   CompletionStage<Response<Map<String, Integer>>> getInventory();
-    
+      
 
   /**
    * Find purchase order by ID
@@ -49,7 +50,7 @@ public interface StoreApi {
    */
   @GET("store/order/{order_id}")
   CompletionStage<Response<Order>> getOrderById(
-    @retrofit2.http.Path("order_id") Long orderId
+      @retrofit2.http.Path("order_id") Long orderId
   );
 
   /**
@@ -60,7 +61,7 @@ public interface StoreApi {
    */
   @POST("store/order")
   CompletionStage<Response<Order>> placeOrder(
-    @retrofit2.http.Body Order body
+      @retrofit2.http.Body Order body
   );
 
 }
