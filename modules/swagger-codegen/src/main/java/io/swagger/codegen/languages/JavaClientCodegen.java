@@ -29,6 +29,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
     public static final String USE_PLAY24_WS = "usePlay24WS";
     public static final String USE_PLAY25_WS = "usePlay25WS";
     public static final String USE_PLAY26_WS = "usePlay26WS";
+    public static final String USE_RAW_RESPONSE = "useRawResponse";
     public static final String PARCELABLE_MODEL = "parcelableModel";
     public static final String USE_RUNTIME_EXCEPTION = "useRuntimeException";
     public static final String QUERYMAP_MINCOUNT = "queryMapMinCount";
@@ -43,6 +44,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
     protected boolean doNotUseRx = true; // backwards compatibility for swagger configs that specify neither rx1 nor rx2 (mustache does not allow for boolean operators so we need this extra field)
     protected boolean usePlay24WS = false;
     protected boolean usePlay25WS = false;
+    protected boolean useRawResponse = true;
     protected boolean usePlay26WS = false;
     protected boolean parcelableModel = false;
     protected boolean useBeanValidation = false;
@@ -66,6 +68,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
         cliOptions.add(CliOption.newBoolean(USE_PLAY24_WS, "Use Play! 2.4 Async HTTP client (Play WS API)"));
         cliOptions.add(CliOption.newBoolean(USE_PLAY25_WS, "Use Play! 2.5 Async HTTP client (Play WS API)"));
         cliOptions.add(CliOption.newBoolean(USE_PLAY26_WS, "Use Play! 2.6 Async HTTP client (Play WS API)"));
+        cliOptions.add(CliOption.newBoolean(USE_RAW_RESPONSE, "Keep retrofit Response<T> in API interfaces"));
         cliOptions.add(CliOption.newBoolean(SUPPORT_JAVA6, "Whether to support Java6 with the Jersey1 library."));
         cliOptions.add(CliOption.newBoolean(USE_BEANVALIDATION, "Use BeanValidation API annotations"));
         cliOptions.add(CliOption.newBoolean(PERFORM_BEANVALIDATION, "Perform BeanValidation"));
@@ -135,7 +138,11 @@ public class JavaClientCodegen extends AbstractJavaCodegen
             this.usePlay26WS = Boolean.valueOf(additionalProperties.get(USE_PLAY26_WS).toString());
         }
         additionalProperties.put(USE_PLAY26_WS, usePlay26WS);
-
+        
+        if (additionalProperties.containsKey(USE_RAW_RESPONSE)) {
+            this.useRawResponse = Boolean.valueOf(additionalProperties.get(USE_RAW_RESPONSE).toString());
+        }
+        additionalProperties.put(USE_RAW_RESPONSE, useRawResponse);
 
         if (additionalProperties.containsKey(QUERYMAP_MINCOUNT)) {
             this.queryMapMinCount = Integer.valueOf(additionalProperties.get(QUERYMAP_MINCOUNT).toString());

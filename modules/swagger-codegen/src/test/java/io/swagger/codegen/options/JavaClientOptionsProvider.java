@@ -21,6 +21,7 @@ public class JavaClientOptionsProvider extends JavaOptionsProvider {
         options.put(JavaClientCodegen.USE_PLAY24_WS, "false");
         options.put(JavaClientCodegen.USE_PLAY25_WS, "false");
         options.put(JavaClientCodegen.USE_PLAY26_WS, "false");
+        options.put(JavaClientCodegen.USE_RAW_RESPONSE, "true");
         options.put(JavaClientCodegen.QUERYMAP_MINCOUNT, "1");
         options.put(JavaClientCodegen.PARCELABLE_MODEL, "false");
         options.put(JavaClientCodegen.SUPPORT_JAVA6, "false");

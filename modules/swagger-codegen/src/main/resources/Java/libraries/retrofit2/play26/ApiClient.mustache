@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
@@ -43,6 +44,9 @@ public class ApiClient {
 
     /** API base path */
     private String basePath = "{{{basePath}}}";
+    
+    /** Default ObjectMapper */
+    private ObjectMapper defaultMapper;
 
     public ApiClient(WSClient wsClient) {
         this();
@@ -57,7 +61,6 @@ public class ApiClient {
         // authentications.put("{{name}}", new OAuth());{{/isOAuth}}{{/authMethods}}
         // Prevent the authentications from being modified.
         authentications = Collections.unmodifiableMap(authentications);
-
     }
 
     /**
@@ -84,37 +87,19 @@ public class ApiClient {
         if (callAdapterFactory == null) {
             callAdapterFactory = new Play26CallAdapterFactory();
         }
+        if (defaultMapper == null) {
+            defaultMapper = Json.mapper();
+        }
 
         return new Retrofit.Builder()
                         .baseUrl(basePath)
-                        .addConverterFactory(new Converter.Factory() {
-
-                            @Override
-                            public Converter<ResponseBody, File> responseBodyConverter(Type type,
-                                    Annotation[] annotations, Retrofit retrofit) {
-
-                                if (!File.class.getTypeName().equals(type.getTypeName())) {
-                                    return null;
-                                }
-
-                                return new Converter<ResponseBody, File>() {
-
-                                    @Override
-                                    public File convert(ResponseBody value) throws IOException {
-
-                                        File file = File.createTempFile("retrofit-file", ".tmp");
-                                        Files.write(Paths.get(file.getPath()), value.bytes());
-                                        return file;
-                                    }
-                                };
-                            }
-                        })
-                       .addConverterFactory(ScalarsConverterFactory.create())
-                       .addConverterFactory(JacksonConverterFactory.create(Json.mapper()))
-                       .callFactory(callFactory)
-                       .addCallAdapterFactory(callAdapterFactory)
-                       .build()
-                       .create(serviceClass);
+                        .addConverterFactory(new FileConverter())
+                        .addConverterFactory(ScalarsConverterFactory.create())
+                        .addConverterFactory(JacksonConverterFactory.create(defaultMapper))
+                        .callFactory(callFactory)
+                        .addCallAdapterFactory(callAdapterFactory)
+                        .build()
+                        .create(serviceClass);
     }
 
     /**
@@ -184,6 +169,37 @@ public class ApiClient {
     public ApiClient setCallAdapterFactory(Play26CallAdapterFactory callAdapterFactory) {
         this.callAdapterFactory = callAdapterFactory;
         return this;
+    }
+    
+    /**
+     * Helper method to set Jackson's {@link ObjectMapper}
+     */
+    public ApiClient setObjectMapper(ObjectMapper mapper) {
+        this.defaultMapper = mapper;
+        return this;
+    }
+    
+    static class FileConverter extends Converter.Factory {
+
+        @Override
+        public Converter<ResponseBody, File> responseBodyConverter(Type type,
+                Annotation[] annotations, Retrofit retrofit) {
+
+            if (!File.class.getTypeName().equals(type.getTypeName())) {
+                return null;
+            }
+
+            return new Converter<ResponseBody, File>() {
+
+                @Override
+                public File convert(ResponseBody value) throws IOException {
+
+                    File file = File.createTempFile("retrofit-file", ".tmp");
+                    Files.write(Paths.get(file.getPath()), value.bytes());
+                    return file;
+                }
+            };
+        }
     }
 
 }
